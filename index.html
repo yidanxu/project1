@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://d3js.org/d3.v6.js"></script>
+  <script src="https://d3js.org/d3-time-format.v3.min.js"></script>
+  <title>$Title$</title>
+</head>
+
+<body>
+<div id="myDataViz"></div>
+<script>
+
+  // set the dimensions and margins of the graph
+  let margin = {top: 30, right: 0, bottom: 30, left: 50},
+          width = 210,
+          height = 210,
+          chartWidth = width - margin.left - margin.right,
+          chartHeight = height - margin.top - margin.bottom;
+
+
+  d3.csv("covid_airport_data2.csv",d3.autoType).then( (data)=>{
+
+
+    //Filter data
+    let arr = ['Kingsford Smith','Santiago International Airport','Toronto Pearson','Los Angeles International',
+    'Chicago OHare International','Detroit Metropolitan Wayne County ','Newark Liberty International ',
+      'McCarran International','Calgary International']
+
+
+    //Filter just the median values
+    //let medians = data.filter( d => d['AirportName'] == "Median")
+    let means = data.filter( d => d['AirportName'] == "Mean")
+    //medians.sort( (a,b) => d3.ascending(a['Week'], b['Week']))
+
+    //Filter just our cities of interest
+    data = data.filter( d => { return arr.indexOf(d['AirportName']) !== -1});
+    data.sort( (a,b) => d3.ascending(a['Week'], b['Week']))
+
+    //Pack the data into nested structure for multiple graphs
+    let sumstat = d3.group(data, d=>d['AirportName'])
+    let keyValue = Array.from(sumstat, ([key, value]) => ({key, value}))
+
+    //Line function to chart the line graph
+    let line = d3.line()
+            .x(function(d){ return dateScale(+d['Week'])})
+            .y(function(d){ return percentScale(+d['Percent.wk'])})
+
+
+    //Add svgs for each chart
+    let svg = d3.select("#myDataViz")
+            .selectAll("uniqueChart")
+            .data(keyValue)
+            .enter()
+            .append("svg")
+            .attr("width",width)
+            .attr("height",height)
+            .append("g").attr("transform",
+                    "translate(" + margin.left + "," + margin.top + ")")
+                .attr("id", function(d){ return(d.key)});
+
+
+
+    //Put x and y axis
+    let dateExtent = d3.extent(data, d=> d['Week']);
+    let dateScale = d3.scaleLinear().domain(dateExtent).range([0,chartWidth]);
+    let percentScale = d3.scaleLinear().domain([0, 100]).range([chartHeight,0]);
+
+    let yAxis = d3.axisLeft(percentScale).ticks();
+    svg.append("g")
+            .call(yAxis);
+    svg.append("g")
+            .attr("transform", "translate(0," + chartHeight + ")")
+            .call(d3.axisBottom(dateScale));
+
+
+    //Draw the median information to every graph
+    /*svg.append("path")
+            .attr("class", "median")
+            .attr("d", line(medians))
+            .style("stroke","lightgrey")
+            .style("stroke-width",2)
+            .style("fill", "none");*/
+
+    svg.append("path")
+            .attr("class", "mean")
+            .attr("d", line(means))
+            .style("stroke","lightgrey")
+            .style("stroke-width",2)
+            .style("fill", "none");
+
+    //Choose colors for each Airport
+    let colorScale = d3.scaleOrdinal().domain(arr)
+            .range(['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffbe33','#a65628','#f781bf','#4ec0c2'])
+
+    // Draw the line for each Airport
+    svg.append("path")
+            .data(keyValue)
+            .attr("fill", "none")
+            //.attr("stroke", function(d){ return colorScale(d.key)})
+            .attr("stroke", d=> {
+              return(colorScale(d.key));
+            })
+            .attr("stroke-width", 1.5)
+            .attr("d",  d=>line(d.value));
+
+    //Write the name for each Chart
+    svg.append("text")
+            .attr("text-anchor", "start")
+            .attr("y", -5)
+            .attr("x", 0)
+            .text(function(d){ return((d.key).split(' ').slice(0,2).join(' '))})
+            .style("fill", function(d){ return colorScale(d.key) })
+  })
+
+
+
+
+
+  /*d3.csv("covid_impact_on_airport_traffic.csv",d3.autoType).then((data)=>{
+
+    console.log(data[0]);
+    console.log(data[100]);
+    console.log(data[400]);
+
+    let format = d3.timeFormat("%a");
+
+    data = data.filter( d => {
+      return d['City'] === 'Los Angeles' && format(d['Date']) == "Mon" })
+
+    data.sort( (a,b) => d3.ascending(a['Date'], b['Date']))
+    //console.log(d3.map(data, d => d['Date']));
+
+
+    let dateExtent = d3.extent(data, d=> d['Date']);
+    let dateScale = d3.scaleTime().domain(dateExtent).range([0,chartWidth]);
+    let percentExtent = d3.extent(data,d=>d['PercentOfBaseline']);
+    let percentScale = d3.scaleLinear().domain([0, 100]).range([chartHeight,0]);
+    console.log(percentExtent);
+
+    let yAxis = d3.axisLeft(percentScale).ticks();
+    svg.append("g")
+            .call(yAxis);
+
+    svg.append("g")
+            .attr("transform", "translate(0," + chartHeight + ")")
+            .call(d3.axisBottom(dateScale));
+
+    let line = d3.line()
+            .x(function(d){ return dateScale(d['Date'])})
+            .y(function(d){ return percentScale(d['PercentOfBaseline'])})
+            //.curve(d3.curveMonotoneX)
+
+    svg.append("path")
+            .datum(data)
+            .attr("fill", "none")
+            .attr("stroke", "steelblue")
+            .attr("stroke-width", 1.5)
+            .attr("d", line);
+
+
+
+  })*/
+
+
+
+
+
+
+</script>
+</body>
+
+</html>
