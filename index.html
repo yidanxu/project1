@@ -4,10 +4,46 @@
   <meta charset="UTF-8">
   <script src="https://d3js.org/d3.v6.js"></script>
   <script src="https://d3js.org/d3-time-format.v3.min.js"></script>
-  <title>$Title$</title>
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:200,300,400" rel="stylesheet">
+  <title>Project 1: Covid influence on airport traffic</title>
+  <style>
+    #head {
+      font-size:44px;
+      color: navy;
+      text-align: center;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 300;
+
+      //border: 1px solid pink;
+    }
+
+    .airportName
+    {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 300;
+      font-size:13px;
+
+    }
+
+    #caption1, #caption2, #caption3 {
+      display:inline-block;
+      padding:30px;
+      font-weight: bold;
+      font-size:15px;
+
+
+    }
+  </style>
 </head>
 
 <body>
+
+<div id="head">
+  Effect of COVID-19 on Airport Traffic
+</div>
+
+
+
 <div id="myDataViz"></div>
 <script>
 
@@ -74,14 +110,6 @@
             .call(d3.axisBottom(dateScale));
 
 
-    //Draw the median information to every graph
-    /*svg.append("path")
-            .attr("class", "median")
-            .attr("d", line(medians))
-            .style("stroke","lightgrey")
-            .style("stroke-width",2)
-            .style("fill", "none");*/
-
     svg.append("path")
             .attr("class", "mean")
             .attr("d", line(means))
@@ -106,6 +134,7 @@
 
     //Write the name for each Chart
     svg.append("text")
+            .attr("class","airportName")
             .attr("text-anchor", "start")
             .attr("y", -5)
             .attr("x", 0)
@@ -114,60 +143,21 @@
   })
 
 
-
-
-
-  /*d3.csv("covid_impact_on_airport_traffic.csv",d3.autoType).then((data)=>{
-
-    console.log(data[0]);
-    console.log(data[100]);
-    console.log(data[400]);
-
-    let format = d3.timeFormat("%a");
-
-    data = data.filter( d => {
-      return d['City'] === 'Los Angeles' && format(d['Date']) == "Mon" })
-
-    data.sort( (a,b) => d3.ascending(a['Date'], b['Date']))
-    //console.log(d3.map(data, d => d['Date']));
-
-
-    let dateExtent = d3.extent(data, d=> d['Date']);
-    let dateScale = d3.scaleTime().domain(dateExtent).range([0,chartWidth]);
-    let percentExtent = d3.extent(data,d=>d['PercentOfBaseline']);
-    let percentScale = d3.scaleLinear().domain([0, 100]).range([chartHeight,0]);
-    console.log(percentExtent);
-
-    let yAxis = d3.axisLeft(percentScale).ticks();
-    svg.append("g")
-            .call(yAxis);
-
-    svg.append("g")
-            .attr("transform", "translate(0," + chartHeight + ")")
-            .call(d3.axisBottom(dateScale));
-
-    let line = d3.line()
-            .x(function(d){ return dateScale(d['Date'])})
-            .y(function(d){ return percentScale(d['PercentOfBaseline'])})
-            //.curve(d3.curveMonotoneX)
-
-    svg.append("path")
-            .datum(data)
-            .attr("fill", "none")
-            .attr("stroke", "steelblue")
-            .attr("stroke-width", 1.5)
-            .attr("d", line);
-
-
-
-  })*/
-
-
-
-
-
-
 </script>
+<div id="wrapper">
+  <div id="caption1">
+    X axis: week of the year
+  </div>
+  <div id="caption2">
+    Y axis: percentage of decrease compared to Feb,2020
+  </div>
+  <div id="caption3">
+    Grey line: the mean of all the airport traffic in our dataset
+  </div>
+</div>
+
+
+
 </body>
 
 </html>
