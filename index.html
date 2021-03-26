@@ -4,35 +4,62 @@
   <meta charset="UTF-8">
   <script src="https://d3js.org/d3.v6.js"></script>
   <script src="https://d3js.org/d3-time-format.v3.min.js"></script>
-  <link href="https://fonts.googleapis.com/css?family=Montserrat:200,300,400" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:200,300,400,500,600" rel="stylesheet">
   <title>Project 1: Covid influence on airport traffic</title>
+
+
   <style>
     #head {
       font-size:44px;
       color: navy;
       text-align: center;
       font-family: 'Montserrat', sans-serif;
-      font-weight: 300;
+      font-weight: 600;
+      padding:40px;
+    }
 
-      //border: 1px solid pink;
+    #title1,#title2{
+      color: navy;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+      font-size:20px;
+      padding:15px;
+
     }
 
     .airportName
     {
+      color: navy;
       font-family: 'Montserrat', sans-serif;
-      font-weight: 300;
+      font-weight: 600;
       font-size:13px;
 
     }
 
+
     #caption1, #caption2, #caption3 {
       display:inline-block;
       padding:30px;
-      font-weight: bold;
+      font-family: 'Montserrat',sans-serif;
+      font-weight: 600;
       font-size:15px;
-
-
     }
+
+    .text
+    {
+      font-family: 'Montserrat',sans-serif;
+      font-weight: 600;
+      font-size:11px;
+    }
+
+    #caption4, #caption5 {
+      display:inline-block;
+      padding:15px;
+      font-family: 'Montserrat',sans-serif;
+      font-weight: 600;
+      font-size:15px;
+    }
+
   </style>
 </head>
 
@@ -42,7 +69,9 @@
   Effect of COVID-19 on Airport Traffic
 </div>
 
-
+<div id="title1">
+  Percentage of Baseline Weekly Airport Traffic Post-Covid
+</div>
 
 <div id="myDataViz"></div>
 <script>
@@ -95,13 +124,10 @@
                     "translate(" + margin.left + "," + margin.top + ")")
                 .attr("id", function(d){ return(d.key)});
 
-
-
     //Put x and y axis
     let dateExtent = d3.extent(data, d=> d['Week']);
     let dateScale = d3.scaleLinear().domain(dateExtent).range([0,chartWidth]);
     let percentScale = d3.scaleLinear().domain([0, 100]).range([chartHeight,0]);
-
     let yAxis = d3.axisLeft(percentScale).ticks();
     svg.append("g")
             .call(yAxis);
@@ -149,11 +175,125 @@
     X axis: week of the year
   </div>
   <div id="caption2">
-    Y axis: percentage of decrease compared to Feb,2020
+    Y axis: percentage of decrease compared to Feb 2020
   </div>
   <div id="caption3">
     Grey line: the mean of all the airport traffic in our dataset
   </div>
+</div>
+
+<div id="title2">
+  Week of Biggest Drop in Airport Traffic
+</div>
+<div id="myDataViz2"></div>
+<script>
+  let margin2 = {top: 10, right: 30, bottom: 30, left: 60},
+          width2 = 400
+          height2 = 400
+          chartWidth2 = 400 - margin2.left - margin2.right,
+          chartHeight2 = 400 - margin2.top - margin2.bottom;
+
+  // append the svg object to the body of the page
+  let myGraph = d3.select("#myDataViz2")
+          .append("svg")
+          .attr("width", width2 + margin2.left + margin2.right)
+          .attr("height", height2 + margin2.top + margin2.bottom)
+
+
+
+
+  //Read the data
+
+  d3.csv("covid_airport_data2.csv",d3.autoType).then( (data)=> {
+
+    //Filter data
+    let arr = ['Kingsford Smith', 'Santiago International Airport', 'Toronto Pearson', 'Los Angeles International',
+      'Chicago OHare International', 'Detroit Metropolitan Wayne County ', 'Newark Liberty International ',
+      'McCarran International', 'Calgary International']
+
+    //Filter just our cities of interest
+    data = data.filter(d => {
+      return arr.indexOf(d['AirportName']) !== -1
+    });
+    data.sort((a, b) => d3.ascending(a['Percent.wk'], b['Percent.wk']))
+    //Pack the data into nested structure for multiple graphs
+    let sumstat = d3.group(data, d => d['AirportName'])
+    let keyValue = Array.from(sumstat, ([key, value]) => ({key, value}))
+
+    //Put x and y axis
+    let dateExtent = d3.extent(data, d => d['Week']);
+    let dateScale = d3.scaleLinear().domain(dateExtent).range([0, chartWidth2]);
+    let percentScale = d3.scaleLinear().domain([0, 100]).range([chartHeight2, 0]);
+    let yAxis = d3.axisLeft(percentScale).ticks();
+
+    myGraph.append("g")
+            .attr("transform","translate(" + margin2.left + "," + margin2.top + ")")
+            .call(yAxis);
+
+            myGraph.append("g")
+            .attr("transform", "translate("+ margin2.left + "," + chartHeight2 + ")")
+            .call(d3.axisBottom(dateScale));
+
+
+    let dict = [];
+    for (let key in keyValue)
+    {
+      if (!(key in dict))
+      {
+        dict[key] = keyValue[key].value[0]
+      }
+    }
+
+    console.log(dict);
+
+    let colorScale = d3.scaleOrdinal().domain(arr)
+            .range(['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffbe33','#a65628','#f781bf','#4ec0c2'])
+
+
+    let dots = myGraph.append('g')
+                .attr("transform","translate(" + margin2.left + "," + margin2.top + ")")
+                .attr("class", "elements")
+                .selectAll("circle")
+                .data(dict)
+                .join("circle")
+                    .attr("class", "circle")
+                    .attr("cx", function(d){
+                      return dateScale(d['Week'])})
+                    .attr("cy",function(d){return percentScale(d['Percent.wk'])})
+                    .attr("r", 4)
+                    .style("fill", function(d){return colorScale(d['AirportName'])});
+
+
+   myGraph.append('g')
+           .attr("transform","translate(" + margin2.left + "," + margin2.top + ")")
+           .selectAll("text")
+           .data(dict)
+           .join("text")
+           .attr("class", "text")
+           .attr("x", function(d){return dateScale(d['Week'])+40})
+           .attr("y",function(d){return percentScale(d['Percent.wk'])-8})
+           .attr("text-anchor", "middle")
+           .text(function(d){return d['AirportName'].split(' ').slice(0,2).join(' ')})
+           .style("fill", function(d){return colorScale(d['AirportName'])})
+
+
+
+  })
+
+
+
+
+</script>
+
+
+<div id="wrapper2">
+  <div id="caption4">
+    X axis: week of the year
+  </div>
+  <div id="caption5">
+    Y axis: percentage of decrease compared to Feb 2020
+  </div>
+
 </div>
 
 
